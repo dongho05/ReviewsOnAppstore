@@ -1,5 +1,6 @@
 ﻿using IronPython.Runtime;
 using ReviewOnAppstoreData.Entity;
+using ReviewOnAppstoreData.Entity.AuthenModel;
 using ReviewOnAppstoreData.Requests;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ namespace ReviewOnAppstoreData.Contracts
 {
     public interface IAppstoreScrapeRepository
     {
+        public Task<List<AuthenticationModel>> GetKeyToAccessToken();
         public Task<List<ReviewInfomation>> GetAllReview();
         public Task<bool> InsertReviews(ReviewInfomation input);
         public Task<bool> InsertResponse(ResponseInformation input);
@@ -18,6 +20,7 @@ namespace ReviewOnAppstoreData.Contracts
         public Task<string> GetCustomerReviewRespone(Guid reviewID);
         public Task<string> CreateAndUpdateResponeToCustomerReview(CreateReviewResquest request);
         public Task<ResponseInformation> ReadCustomerReviewResponse(Guid responseID);
-        public Task<string> DeleteResponseToCustomerReview(Guid responseID);   
+        public Task<string> DeleteResponseToCustomerReview(Guid responseID);
+        public Task<bool> UpdateStateResponse(UpdateStatusRequest input);
     }
 }

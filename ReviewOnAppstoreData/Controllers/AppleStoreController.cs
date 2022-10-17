@@ -52,5 +52,15 @@ namespace ReviewOnAppstoreData.Controllers
         {
             return await _scrapeRepository.DeleteResponseToCustomerReview(responseID);
         }
+        [HttpGet("[action]")]
+        public async Task<List<ResponseInformation>> GetListResponseFromDB()
+        {
+            return await _scrapeRepository.GetListResponseFromDB();
+        }
+        [HttpPost("[action]")]
+        public async Task<bool> UpdateStateResponse(UpdateStatusRequest input)
+        {
+            return await _scrapeRepository.UpdateStateResponse(input);
+        }
     }
 }

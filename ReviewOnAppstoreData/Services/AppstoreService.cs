@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using ReviewOnAppstoreData.Contracts;
+using ReviewOnAppstoreData.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,8 +39,20 @@ namespace ReviewOnAppstoreData.Services
                         }
 
                     }
+                    var list_response_db = await appstoreScrapeRepository.GetListResponseFromDB();
+                    foreach (var item in list_response_db)
+                    {
+                        var response_app = await appstoreScrapeRepository.ReadCustomerReviewResponse(item.ResponseID);
+                        var request_update = new UpdateStatusRequest
+                        {
+                            ResponseID = response_app.ResponseID,
+                            State_response = response_app.State_response
+                        };
+                        appstoreScrapeRepository.UpdateStateResponse(request_update);
+                    }
                     Console.WriteLine("true");
                     await Task.Delay(1000 * 60 * 60 * 6, stoppingToken);
+
                 }
                 catch (OperationCanceledException)
                 {

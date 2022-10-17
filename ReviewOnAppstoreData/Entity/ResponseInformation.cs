@@ -9,5 +9,6 @@ namespace ReviewOnAppstoreData.Entity
         public string ResponseBody { get; set; }
         public DateTime LastModifiedDate { get; set; }
         public string State_response { get; set; }
+        public Guid ReviewID { get; set; }
     }
 }

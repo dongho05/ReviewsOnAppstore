@@ -9,6 +9,7 @@ using RestSharp;
 using ReviewOnAppstoreData.Context;
 using ReviewOnAppstoreData.Contracts;
 using ReviewOnAppstoreData.Entity;
+using ReviewOnAppstoreData.Entity.AuthenModel;
 using ReviewOnAppstoreData.Requests;
 using ReviewOnAppstoreData.Responses;
 using System;
@@ -36,22 +37,30 @@ namespace ReviewOnAppstoreData.Data
 
         public string GenerateToken()
         {
+            var list_key_authen = GetKeyToAccessToken().Result;
+            var key_authen = list_key_authen.FirstOrDefault();
             var header = new Dictionary<string, object>()
             {
-                { "alg", _configuration["Jwt:Algorithm"] },
-                { "kid", _configuration["Jwt:Key"] },
-                { "typ", "JWT" }
+                { "alg", key_authen.Algorithm },
+                { "kid", key_authen.Key_ID },
+                { "typ", key_authen.Type_Algorithm }
+                //{ "alg", _configuration["Jwt:Algorithm"] },
+                //{ "kid", _configuration["Jwt:Key"] },
+                //{ "typ", "JWT" }
             };
 
-            var scope = new string[1] { "GET /v1/apps?filter[platform]=IOS" };
+            //var scope = new string[1] { "GET /v1/apps?filter[platform]=IOS" };
             var payload = new Dictionary<string, object>
             {
-                { "iss",_configuration["Jwt:Issuer"]},
+                //{ "iss",_configuration["Jwt:Issuer"]},
+                { "iss",key_authen.Issuer_ID},
                 { "iat", DateTimeOffset.UtcNow.ToUnixTimeSeconds() },
                 { "exp", DateTimeOffset.UtcNow.AddMinutes(15).ToUnixTimeSeconds() },
-                { "aud", _configuration["Jwt:Audience"] }
+                //{ "aud", _configuration["Jwt:Audience"] }
+                { "aud", key_authen.Audience }
             };
-            var privateKey = _configuration["Jwt:PrivateKey"];
+            var privateKey = key_authen.Private_Key;
+            privateKey = privateKey.Replace("\\r\\n", string.Empty);
             privateKey = privateKey.Replace("-----BEGIN PRIVATE KEY-----", "");
             privateKey = privateKey.Replace("-----END PRIVATE KEY-----", "");
             CngKey key = CngKey.Import(Convert.FromBase64String(privateKey), CngKeyBlobFormat.Pkcs8PrivateBlob);
@@ -180,7 +189,8 @@ namespace ReviewOnAppstoreData.Data
                         ResponseID = info.id,
                         ResponseBody = info.attributes.responseBody,
                         LastModifiedDate = info.attributes.lastModifiedDate,
-                        State_response = info.attributes.state
+                        State_response = info.attributes.state,
+                        ReviewID = request.data.relationships.review.data.id
                     };
                     InsertResponse(response_infor);
                     //}
@@ -199,18 +209,18 @@ namespace ReviewOnAppstoreData.Data
 
         public async Task<List<ReviewInfomation>> GetListReviewsFromDB()
         {
-            using (var connection = _context.CreateConnection())
+            using (var connection = _context.CreateConnection2())
             {
-                var list = await connection.QueryAsync<ReviewInfomation>(@"select * from Reviews order by CreatedTime desc ");
+                var list = await connection.QueryAsync<ReviewInfomation>(@"select * from AppstoreReviews order by CreatedTime desc ");
                 return list.ToList();
             }
         }
 
         public async Task<bool> InsertReviews(ReviewInfomation input)
         {
-            using (var connection = _context.CreateConnection())
+            using (var connection = _context.CreateConnection2())
             {
-                var result = await connection.ExecuteAsync(@"insert into Reviews 
+                var result = await connection.ExecuteAsync(@"insert into AppstoreReviews 
                     values(@IdCustomer,
                     @TypeReview,
                     @Rating,
@@ -235,20 +245,22 @@ namespace ReviewOnAppstoreData.Data
 
         public async Task<bool> InsertResponse(ResponseInformation input)
         {
-            using (var connection = _context.CreateConnection())
+            using (var connection = _context.CreateConnection2())
             {
-                var result = await connection.ExecuteAsync(@"insert into Responses 
+                var result = await connection.ExecuteAsync(@"insert into AppstoreResponse 
                     values(@Type,
                     @ResponseID,
                     @ResponseBody,
                     @LastModifiedDate,
-                    @State_response)", new
+                    @State_response,
+                    @ReviewID)", new
                 {
                     Type = input.Type_Response,
                     ResponseID = input.ResponseID,
                     ResponseBody = input.ResponseBody,
                     LastModifiedDate = input.LastModifiedDate,
-                    State_response = input.State_response
+                    State_response = input.State_response,
+                    ReviewID = input.ReviewID
                 });
                 return true;
             }
@@ -333,10 +345,29 @@ namespace ReviewOnAppstoreData.Data
 
         public async Task<List<ResponseInformation>> GetListResponseFromDB()
         {
-            using (var connection = _context.CreateConnection())
+            using (var connection = _context.CreateConnection2())
             {
-                var list = await connection.QueryAsync<ResponseInformation>(@"select * from Responses order by CreatedTime desc ");
+                var list = await connection.QueryAsync<ResponseInformation>(@"select * from AppstoreResponse");
                 return list.ToList();
+            }
+        }
+
+        public async Task<bool> UpdateStateResponse(UpdateStatusRequest input)
+        {
+            using(var connection = _context.CreateConnection2())
+            {
+                var query = await connection.ExecuteAsync(@"update AppstoreResponse set State_response = @state where ResponseID = @id ",
+                    new {state = input.State_response, id = input.ResponseID});
+                return true;
+            }
+        }
+
+        public async Task<List<AuthenticationModel>> GetKeyToAccessToken()
+        {
+            using(var connection = _context.CreateConnection2())
+            {
+                var result = (await connection.QueryAsync<AuthenticationModel>(@"select * from AppstoreAuthen")).ToList();
+                return result;
             }
         }
     }
