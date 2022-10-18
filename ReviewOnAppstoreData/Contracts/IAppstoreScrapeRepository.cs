@@ -1,5 +1,6 @@
 ﻿using IronPython.Runtime;
 using ReviewOnAppstoreData.Entity;
+using ReviewOnAppstoreData.Entity.App;
 using ReviewOnAppstoreData.Entity.AuthenModel;
 using ReviewOnAppstoreData.Requests;
 using ReviewOnAppstoreData.Responses;
@@ -23,5 +24,9 @@ namespace ReviewOnAppstoreData.Contracts
         public Task<ResponseInformation> ReadCustomerReviewResponse(Guid responseID);
         public Task<string> DeleteResponseToCustomerReview(Guid responseID);
         public Task<bool> UpdateStateResponse(UpdateStatusRequest input);
+        public Task<AppInformation> GetApp();
+        public Task<bool> CheckExistReviewID(Guid reviewID);
+        public Task<bool> UpdateAppstoreResponse(ResponseInformation input);
+        public Task<bool> DeleteAppstoreResponse(Guid responseID);
     }
 }

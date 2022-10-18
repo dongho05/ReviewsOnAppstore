@@ -36,5 +36,8 @@ namespace ReviewOnAppstoreData.Controllers
         {
             return await _keyauthen.UpdateKeyAuthen(authen);
         }
+
+        //[HttpPost]
+
     }
 }

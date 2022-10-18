@@ -9,6 +9,7 @@ using RestSharp;
 using ReviewOnAppstoreData.Context;
 using ReviewOnAppstoreData.Contracts;
 using ReviewOnAppstoreData.Entity;
+using ReviewOnAppstoreData.Entity.App;
 using ReviewOnAppstoreData.Entity.AuthenModel;
 using ReviewOnAppstoreData.Requests;
 using ReviewOnAppstoreData.Responses;
@@ -98,7 +99,8 @@ namespace ReviewOnAppstoreData.Data
                             BodyDescription = item.attributes.body,
                             NameReviewer = item.attributes.reviewerNickname,
                             CreatedTime = item.attributes.createdDate,
-                            Territory = item.attributes.territory
+                            Territory = item.attributes.territory,
+                            App_ID = 1625930819
                         };
                         listReview.Add(review_infor);
                     }
@@ -159,7 +161,6 @@ namespace ReviewOnAppstoreData.Data
             }
             catch (Exception ex)
             {
-
                 throw new Exception("Has Errors");
             }
         }
@@ -167,6 +168,8 @@ namespace ReviewOnAppstoreData.Data
         public async Task<string> CreateAndUpdateResponeToCustomerReview(CreateReviewResquest request)
         {
             var token = GenerateToken();
+            var app = GetApp();
+            var check = CheckExistReviewID(request.data.relationships.review.data.id);
             try
             {
 
@@ -190,9 +193,19 @@ namespace ReviewOnAppstoreData.Data
                         ResponseBody = info.attributes.responseBody,
                         LastModifiedDate = info.attributes.lastModifiedDate,
                         State_response = info.attributes.state,
-                        ReviewID = request.data.relationships.review.data.id
+                        ReviewID = request.data.relationships.review.data.id,
+                        CreatedDate = info.attributes.lastModifiedDate,
+                        App_ID = 1625930819
                     };
-                    InsertResponse(response_infor);
+                    if(check.Result == false)
+                    {
+                            InsertResponse(response_infor);
+                    }
+                    else
+                    {
+                        UpdateAppstoreResponse(response_infor);
+                    }
+                    
                     //}
 
                 }
@@ -238,7 +251,8 @@ namespace ReviewOnAppstoreData.Data
                     @BodyDescription,
                     @NameReviewer,
                     @CreatedTime,
-                    @Territory)", new
+                    @Territory,
+                    @App_ID)", new
                 {
                     IdCustomer = input.IdCustomer,
                     TypeReview = input.TypeReview,
@@ -247,7 +261,8 @@ namespace ReviewOnAppstoreData.Data
                     BodyDescription = input.BodyDescription,
                     NameReviewer = input.NameReviewer,
                     CreatedTime = input.CreatedTime,
-                    Territory = input.Territory
+                    Territory = input.Territory,
+                    App_ID = input.App_ID
                 });
                 return true;
             }
@@ -263,14 +278,18 @@ namespace ReviewOnAppstoreData.Data
                     @ResponseBody,
                     @LastModifiedDate,
                     @State_response,
-                    @ReviewID)", new
+                    @ReviewID,
+                    @CreatedDate,
+                    @App_ID)", new
                 {
                     Type = input.Type_Response,
                     ResponseID = input.ResponseID,
                     ResponseBody = input.ResponseBody,
                     LastModifiedDate = input.LastModifiedDate,
                     State_response = input.State_response,
-                    ReviewID = input.ReviewID
+                    ReviewID = input.ReviewID,
+                    CreatedDate = input.CreatedDate,
+                    App_ID=input.App_ID
                 });
                 return true;
             }
@@ -344,6 +363,7 @@ namespace ReviewOnAppstoreData.Data
                 requesturl.AddHeader("Authorization", token);
 
                 var respone = await client.ExecuteAsync(requesturl);
+                DeleteAppstoreResponse(responseID);
                 return respone.Content.ToString();
             }
             catch (Exception ex)
@@ -378,6 +398,72 @@ namespace ReviewOnAppstoreData.Data
             {
                 var result = (await connection.QueryAsync<AuthenticationModel>(@"select * from AppstoreAuthen")).ToList();
                 return result;
+            }
+        }
+
+        public async Task<AppInformation> GetApp()
+        {
+            var token = GenerateToken();
+            try
+            {
+                RestClient client = new RestClient(_configuration.GetSection("AppClient").Value);
+                var requesturl = new RestRequest("v1/apps", RestSharp.Method.Get);
+                requesturl.RequestFormat = DataFormat.Json;
+                requesturl.AddHeader("content-type", "application/json-patch+json");
+                requesturl.AddHeader("Authorization", token);
+
+                var respone = await client.ExecuteAsync(requesturl);
+                if (respone.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    var info = (JsonConvert.DeserializeObject<AppModel>(respone.Content)).data;
+
+                    var response_infor = new AppInformation
+                    {
+                        App_ID = info.id,
+                        App_name = info.attributes.name,
+                        Description = info.attributes.name,
+                        Type_app = "Appstore"
+                    };
+                    return response_infor;
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception("Has Errors");
+            }
+        }
+
+        public async Task<bool> CheckExistReviewID(Guid reviewID)
+        {
+            using(var connection = _context.CreateConnection2())
+            {
+                var query = (await connection.QueryAsync<ResponseInformation>(@"select * from AppstoreResponse where ReviewID = @id", new { id = reviewID })).FirstOrDefault();
+                if(query != null) { return true; }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        public async Task<bool> UpdateAppstoreResponse(ResponseInformation input)
+        {
+            using(var connection = _context.CreateConnection2())
+            {
+                var query = await connection.ExecuteAsync(@"update AppstoreResponse set LastModifiedDate = @date,ResponseBody = @responsebody",
+                    new {date= input.LastModifiedDate,responsebody = input.ResponseBody});
+                return true;
+            }
+        }
+
+        public async Task<bool> DeleteAppstoreResponse(Guid responseID)
+        {
+            using (var connection = _context.CreateConnection2())
+            {
+                var query = await connection.ExecuteAsync(@"delete from AppstoreResponse where ResponseID = @id", new {id = responseID});
+                return true;
             }
         }
     }

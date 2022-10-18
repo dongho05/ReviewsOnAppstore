@@ -10,5 +10,7 @@ namespace ReviewOnAppstoreData.Entity
         public DateTime LastModifiedDate { get; set; }
         public string State_response { get; set; }
         public Guid ReviewID { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public long App_ID { get; set; }
     }
 }
