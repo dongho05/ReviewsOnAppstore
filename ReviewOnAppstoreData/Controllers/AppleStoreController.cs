@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ReviewOnAppstoreData.Contracts;
 using ReviewOnAppstoreData.Entity;
 using ReviewOnAppstoreData.Requests;
+using ReviewOnAppstoreData.Responses;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -61,6 +62,11 @@ namespace ReviewOnAppstoreData.Controllers
         public async Task<bool> UpdateStateResponse(UpdateStatusRequest input)
         {
             return await _scrapeRepository.UpdateStateResponse(input);
+        }
+        [HttpPost("[action]")]
+        public async Task<ReviewInfomationResponse> GetListReviewFromDB(CustomerReviewRequest request)
+        {
+            return await _scrapeRepository.GetListReviewsFromDB(request);
         }
     }
 }

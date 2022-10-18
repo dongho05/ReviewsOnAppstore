@@ -36,6 +36,7 @@ namespace ReviewOnAppstoreData
             services.AddControllers();
             services.AddSingleton<DapperContext>();
             services.AddSingleton<IAppstoreScrapeRepository, AppstoreScrapeRepository>();
+            services.AddSingleton<IKeyAuthenticationRepository, KeyAuthenticationRepository>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ReviewOnAppstoreData", Version = "v1" });

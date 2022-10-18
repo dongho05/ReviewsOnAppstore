@@ -2,9 +2,7 @@
 using ReviewOnAppstoreData.Contracts;
 using ReviewOnAppstoreData.Requests;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,8 +24,8 @@ namespace ReviewOnAppstoreData.Services
                 try
                 {
                     var list_review = await appstoreScrapeRepository.GetAllReview();
-                    var list_review_db = await appstoreScrapeRepository.GetListReviewsFromDB();
-                    DateTime latestDate = (from day in list_review_db
+                    var list_review_db = await appstoreScrapeRepository.GetListReviewsFromDB(new CustomerReviewRequest { Limit = 100, Offset = 0, Query=""});
+                    DateTime latestDate = (from day in list_review_db.Data
                                            select day.CreatedTime).FirstOrDefault();
                     //DateTime latestDate = new DateTime(2022, 07, 19, 16, 15, 00);
                     foreach (var item in list_review)

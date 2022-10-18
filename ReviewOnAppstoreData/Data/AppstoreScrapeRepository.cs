@@ -207,12 +207,22 @@ namespace ReviewOnAppstoreData.Data
             }
         }
 
-        public async Task<List<ReviewInfomation>> GetListReviewsFromDB()
+        public async Task<ReviewInfomationResponse> GetListReviewsFromDB(CustomerReviewRequest request)
         {
             using (var connection = _context.CreateConnection2())
             {
-                var list = await connection.QueryAsync<ReviewInfomation>(@"select * from AppstoreReviews order by CreatedTime desc ");
-                return list.ToList();
+                var list = await connection.QueryAsync<ReviewInfomation>(@"select * from AppstoreReviews
+                                where Title Like '%'+ @query +'%' or @query = ''
+                                order by CreatedTime desc 
+                                offset @offset rows fetch next @limit rows only ", new
+                {
+                                                                             query = request.Query,
+                                                                             offset = request.Offset,
+                                                                             limit= request.Limit
+                });
+                var total = (await connection.QueryAsync<int>(@"select count(*) from AppstoreReviews")).FirstOrDefault();
+                var result = new ReviewInfomationResponse { Total = total, Data = list.ToList() };
+                return result;
             }
         }
 
