@@ -11,9 +11,12 @@ namespace ReviewOnAppstoreData.Services
     public class AppstoreService : BackgroundService
     {
         private readonly IAppstoreScrapeRepository appstoreScrapeRepository;
-        public AppstoreService(IAppstoreScrapeRepository appstoreScrapeRepository)
+        private readonly IAppRepository appRepository;
+        public AppstoreService(IAppstoreScrapeRepository appstoreScrapeRepository, IAppRepository appRepository)
         {
             this.appstoreScrapeRepository = appstoreScrapeRepository;
+            this.appRepository = appRepository;
+
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -23,20 +26,25 @@ namespace ReviewOnAppstoreData.Services
             {
                 try
                 {
-                    var list_review = await appstoreScrapeRepository.GetAllReview();
-                    var list_review_db = await appstoreScrapeRepository.GetListReviewsFromDB(new CustomerReviewRequest { Limit = 100, Offset = 0, Query=""});
-                    DateTime latestDate = (from day in list_review_db.Data
-                                           select day.CreatedTime).FirstOrDefault();
-                    //DateTime latestDate = new DateTime(2022, 07, 19, 16, 15, 00);
-                    foreach (var item in list_review)
+                    var list_app = await appRepository.GetListApp();
+                    foreach (var app_item in list_app)
                     {
-                        int result_compare = DateTime.Compare(item.CreatedTime, latestDate);
-                        if (result_compare > 0)
+                        var list_review = await appstoreScrapeRepository.GetAllReview(app_item.App_ID);
+                        var list_review_db = await appstoreScrapeRepository.GetListReviewsFromDB(new CustomerReviewRequest { Limit = 100, Offset = 0, Query = "" });
+                        DateTime latestDate = (from day in list_review_db.Data
+                                               select day.CreatedTime).FirstOrDefault();
+                        //DateTime latestDate = new DateTime(2022, 07, 19, 16, 15, 00);
+                        foreach (var item in list_review)
                         {
-                            appstoreScrapeRepository.InsertReviews(item);
-                        }
+                            int result_compare = DateTime.Compare(item.CreatedTime, latestDate);
+                            if (result_compare > 0)
+                            {
+                                appstoreScrapeRepository.InsertReviews(item);
+                            }
 
+                        }
                     }
+
                     var list_response_db = await appstoreScrapeRepository.GetListResponseFromDB();
                     foreach (var item in list_response_db)
                     {

@@ -13,7 +13,7 @@ namespace ReviewOnAppstoreData.Contracts
     public interface IAppstoreScrapeRepository
     {
         public Task<List<AuthenticationModel>> GetKeyToAccessToken();
-        public Task<List<ReviewInfomation>> GetAllReview();
+        public Task<List<ReviewInfomation>> GetAllReview(string app_id);
         public Task<bool> InsertReviews(ReviewInfomation input);
         public Task<bool> InsertResponse(ResponseInformation input);
         public string GenerateToken();

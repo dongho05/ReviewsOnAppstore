@@ -71,14 +71,14 @@ namespace ReviewOnAppstoreData.Data
             return token;
         }
 
-        public async Task<List<ReviewInfomation>> GetAllReview()
+        public async Task<List<ReviewInfomation>> GetAllReview(string app_id)
         {
             List<ReviewInfomation> listReview = new List<ReviewInfomation>();
             var token = GenerateToken();
             try
             {
                 RestClient client = new RestClient(_configuration.GetSection("AppClient").Value);
-                var requesturl = new RestRequest($"v1/apps/1625930819/customerReviews?limit={_configuration["Jwt:Limit"]}", RestSharp.Method.Get);
+                var requesturl = new RestRequest($"v1/apps/{app_id}/customerReviews?limit={_configuration["Jwt:Limit"]}", RestSharp.Method.Get);
                 requesturl.RequestFormat = DataFormat.Json;
                 requesturl.AddHeader("content-type", "application/json-patch+json");
                 requesturl.AddHeader("Authorization", token);
@@ -100,40 +100,11 @@ namespace ReviewOnAppstoreData.Data
                             NameReviewer = item.attributes.reviewerNickname,
                             CreatedTime = item.attributes.createdDate,
                             Territory = item.attributes.territory,
-                            App_ID = 1625930819
+                            App_ID = app_id
                         };
                         listReview.Add(review_infor);
                     }
                 }
-                //var data = JObject.Parse(respone.Content);
-                //var list_Data = data.SelectToken("data");
-                //foreach (var item in list_Data)
-                //{
-                //    //var type = item.SelectToken("type").ToString();
-                //    //var cusID = Guid.Parse(item.SelectToken("id").ToString());
-                //    //var listAttribute = item.SelectToken("attributes");
-                //    //var rate = listAttribute.SelectToken("rating");
-                //    //var title = listAttribute.SelectToken("title").ToString();
-                //    //var body = listAttribute.SelectToken("body").ToString();
-                //    //var reviewerNickname = listAttribute.SelectToken("reviewerNickname").ToString();
-                //    //var createdDate = DateTime.Parse(listAttribute.SelectToken("createdDate").ToString());
-                //    //var territory = listAttribute.SelectToken("territory").ToString();
-
-                //    var review_infor = new ReviewInfomation
-                //    {
-                //        IdCustomer = cusID,
-                //        TypeReview = type,
-                //        Rating = Convert.ToInt32(rate),
-                //        Title = title,
-                //        BodyDescription = body,
-                //        NameReviewer = reviewerNickname,
-                //        CreatedTime = createdDate,
-                //        Territory = territory
-
-                //    };
-                //    listReview.Add(review_infor);
-
-                //}
                 return listReview;
 
             }
