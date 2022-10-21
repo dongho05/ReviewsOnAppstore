@@ -135,12 +135,19 @@ namespace ReviewOnAppstoreData.Data
                 throw new Exception("Has Errors");
             }
         }
-
+        public async Task<string> GetAppIDByReviewID(Guid reviewid)
+        {
+            using(var connection = _context.CreateConnection2())
+            {
+                var result = await connection.QueryAsync<string>(@"select App_ID from AppstoreReviews where IdCustomerRV = @id", new { id = reviewid });
+                return result.FirstOrDefault();
+            }
+        }
         public async Task<string> CreateAndUpdateResponeToCustomerReview(CreateReviewResquest request)
         {
             var token = GenerateToken();
-            var app = GetApp();
             var check = CheckExistReviewID(request.data.relationships.review.data.id);
+            var app_id = GetAppIDByReviewID(request.data.relationships.review.data.id);
             try
             {
 
@@ -166,7 +173,7 @@ namespace ReviewOnAppstoreData.Data
                         State_response = info.attributes.state,
                         ReviewID = request.data.relationships.review.data.id,
                         CreatedDate = info.attributes.lastModifiedDate,
-                        App_ID = 1625930819
+                        App_ID = app_id.Result
                     };
                     if(check.Result == false)
                     {
@@ -437,5 +444,6 @@ namespace ReviewOnAppstoreData.Data
                 return true;
             }
         }
+
     }
 }

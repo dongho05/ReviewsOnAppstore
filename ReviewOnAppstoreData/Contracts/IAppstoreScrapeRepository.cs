@@ -28,5 +28,7 @@ namespace ReviewOnAppstoreData.Contracts
         public Task<bool> CheckExistReviewID(Guid reviewID);
         public Task<bool> UpdateAppstoreResponse(ResponseInformation input);
         public Task<bool> DeleteAppstoreResponse(Guid responseID);
+        public Task<string> GetAppIDByReviewID(Guid reviewID);
+
     }
 }
