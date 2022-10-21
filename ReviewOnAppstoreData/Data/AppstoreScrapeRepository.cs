@@ -71,14 +71,15 @@ namespace ReviewOnAppstoreData.Data
             return token;
         }
 
-        public async Task<List<ReviewInfomation>> GetAllReview(string app_id)
+        public async Task<List<ReviewInfomation>> GetAllReview(int app_id)
         {
             List<ReviewInfomation> listReview = new List<ReviewInfomation>();
             var token = GenerateToken();
+            var app = GetAppByID(app_id).Result;
             try
             {
                 RestClient client = new RestClient(_configuration.GetSection("AppClient").Value);
-                var requesturl = new RestRequest($"v1/apps/{app_id}/customerReviews?limit={_configuration["Jwt:Limit"]}", RestSharp.Method.Get);
+                var requesturl = new RestRequest($"v1/apps/{app.App_ID}/customerReviews?limit={_configuration["Jwt:Limit"]}", RestSharp.Method.Get);
                 requesturl.RequestFormat = DataFormat.Json;
                 requesturl.AddHeader("content-type", "application/json-patch+json");
                 requesturl.AddHeader("Authorization", token);
@@ -135,11 +136,12 @@ namespace ReviewOnAppstoreData.Data
                 throw new Exception("Has Errors");
             }
         }
-        public async Task<string> GetAppIDByReviewID(Guid reviewid)
+        public async Task<int> GetIDAppByReviewID(Guid reviewid)
         {
-            using(var connection = _context.CreateConnection2())
+            using (var connection = _context.CreateConnection2())
             {
-                var result = await connection.QueryAsync<string>(@"select App_ID from AppstoreReviews where IdCustomerRV = @id", new { id = reviewid });
+                var result = await connection.QueryAsync<int>(@"select al.ID from AppList al join AppstoreReviews ar on al.ID = ar.App_ID 
+                where ar.IdCustomerRV = @id", new { id = reviewid });
                 return result.FirstOrDefault();
             }
         }
@@ -147,7 +149,7 @@ namespace ReviewOnAppstoreData.Data
         {
             var token = GenerateToken();
             var check = CheckExistReviewID(request.data.relationships.review.data.id);
-            var app_id = GetAppIDByReviewID(request.data.relationships.review.data.id);
+            var app_id = GetIDAppByReviewID(request.data.relationships.review.data.id).Result;
             try
             {
 
@@ -173,7 +175,7 @@ namespace ReviewOnAppstoreData.Data
                         State_response = info.attributes.state,
                         ReviewID = request.data.relationships.review.data.id,
                         CreatedDate = info.attributes.lastModifiedDate,
-                        App_ID = app_id.Result
+                        App_ID = app_id
                     };
                     if(check.Result == false)
                     {
@@ -379,39 +381,39 @@ namespace ReviewOnAppstoreData.Data
             }
         }
 
-        public async Task<AppInformation> GetApp()
-        {
-            var token = GenerateToken();
-            try
-            {
-                RestClient client = new RestClient(_configuration.GetSection("AppClient").Value);
-                var requesturl = new RestRequest("v1/apps", RestSharp.Method.Get);
-                requesturl.RequestFormat = DataFormat.Json;
-                requesturl.AddHeader("content-type", "application/json-patch+json");
-                requesturl.AddHeader("Authorization", token);
+        //public async Task<AppInformation> GetApp()
+        //{
+        //    var token = GenerateToken();
+        //    try
+        //    {
+        //        RestClient client = new RestClient(_configuration.GetSection("AppClient").Value);
+        //        var requesturl = new RestRequest("v1/apps", RestSharp.Method.Get);
+        //        requesturl.RequestFormat = DataFormat.Json;
+        //        requesturl.AddHeader("content-type", "application/json-patch+json");
+        //        requesturl.AddHeader("Authorization", token);
 
-                var respone = await client.ExecuteAsync(requesturl);
-                if (respone.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    var info = (JsonConvert.DeserializeObject<AppModel>(respone.Content)).data;
+        //        var respone = await client.ExecuteAsync(requesturl);
+        //        if (respone.StatusCode == System.Net.HttpStatusCode.OK)
+        //        {
+        //            var info = (JsonConvert.DeserializeObject<AppModel>(respone.Content)).data;
 
-                    var response_infor = new AppInformation
-                    {
-                        App_ID = info.id,
-                        App_name = info.attributes.name,
-                        Description = info.attributes.name,
-                        Type_app = "Appstore"
-                    };
-                    return response_infor;
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
+        //            var response_infor = new AppInformation
+        //            {
+        //                App_ID = info.id,
+        //                App_name = info.attributes.name,
+        //                Description = info.attributes.name,
+        //                Type_app = "Appstore"
+        //            };
+        //            return response_infor;
+        //        }
+        //        return null;
+        //    }
+        //    catch (Exception ex)
+        //    {
 
-                throw new Exception("Has Errors");
-            }
-        }
+        //        throw new Exception("Has Errors");
+        //    }
+        //}
 
         public async Task<bool> CheckExistReviewID(Guid reviewID)
         {
@@ -444,6 +446,13 @@ namespace ReviewOnAppstoreData.Data
                 return true;
             }
         }
-
+        public async Task<AppInformation> GetAppByID(int id)
+        {
+            using (var connection = _context.CreateConnection2())
+            {
+                var result = await connection.QueryAsync<AppInformation>(@"select * from AppList where ID = @id", new { id = id });
+                return result.FirstOrDefault();
+            }
+        }
     }
 }

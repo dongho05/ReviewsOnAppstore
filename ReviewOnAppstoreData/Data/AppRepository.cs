@@ -8,6 +8,8 @@ using System;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Linq;
+using ReviewOnAppstoreData.Context;
+using Dapper;
 
 namespace ReviewOnAppstoreData.Data
 {
@@ -15,10 +17,12 @@ namespace ReviewOnAppstoreData.Data
     {
         private readonly IConfiguration _configuration;
         private readonly IAppstoreScrapeRepository _scrapeRepository;
-        public AppRepository(IConfiguration configuration, IAppstoreScrapeRepository scrapeRepository)
+        private readonly DapperContext _context;
+        public AppRepository(IConfiguration configuration, IAppstoreScrapeRepository scrapeRepository,DapperContext context)
         {
             _configuration = configuration;
             _scrapeRepository = scrapeRepository;
+            _context = context;
         }
 
         public async Task<AppInformation> GetApp(string app_id)
@@ -59,6 +63,7 @@ namespace ReviewOnAppstoreData.Data
         {
             var token = _scrapeRepository.GenerateToken();
             List<AppInformation> list = new List<AppInformation>();
+            
             try
             {
                 RestClient client = new RestClient(_configuration.GetSection("AppClient").Value);
@@ -91,6 +96,23 @@ namespace ReviewOnAppstoreData.Data
             {
 
                 throw new Exception("Has Errors");
+            }
+        }
+        public async Task<AppInformation> GetAppByAppID(string app_id)
+        {
+            using (var connection = _context.CreateConnection2())
+            {
+                var result = await connection.QueryAsync<AppInformation>(@"select * from AppList where App_ID = @id", new { id = app_id });
+                return result.FirstOrDefault();
+            }
+        }
+
+        public async Task<List<AppInformation>> GetListAppFromDB()
+        {
+            using(var connection = _context.CreateConnection2())
+            {
+                var result = await connection.QueryAsync<AppInformation>(@"select * from AppList");
+                return result.ToList(); 
             }
         }
     }

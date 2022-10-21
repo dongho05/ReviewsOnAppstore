@@ -26,10 +26,10 @@ namespace ReviewOnAppstoreData.Services
             {
                 try
                 {
-                    var list_app = await appRepository.GetListApp();
+                    var list_app = await appRepository.GetListAppFromDB();
                     foreach (var app_item in list_app)
                     {
-                        var list_review = await appstoreScrapeRepository.GetAllReview(app_item.App_ID);
+                        var list_review = await appstoreScrapeRepository.GetAllReview(app_item.ID);
                         var list_review_db = await appstoreScrapeRepository.GetListReviewsFromDB(new CustomerReviewRequest { Limit = 100, Offset = 0, Query = "" });
                         DateTime latestDate = (from day in list_review_db.Data
                                                select day.CreatedTime).FirstOrDefault();

@@ -8,5 +8,7 @@ namespace ReviewOnAppstoreData.Contracts
     {
         public Task<List<AppInformation>> GetListApp();
         public Task<AppInformation> GetApp(string app_id);
+        public Task<AppInformation> GetAppByAppID(string app_id);
+        public Task<List<AppInformation>> GetListAppFromDB();
     }
 }

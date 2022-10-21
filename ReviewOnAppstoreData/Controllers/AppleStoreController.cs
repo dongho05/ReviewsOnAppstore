@@ -26,7 +26,7 @@ namespace ReviewOnAppstoreData.Controllers
             return _scrapeRepository.GenerateToken();
         }
         [HttpGet("[action]")]
-        public async Task<List<ReviewInfomation>> GetAll(string app_id)
+        public async Task<List<ReviewInfomation>> GetAll(int app_id)
         {
             return await _scrapeRepository.GetAllReview(app_id);
         }

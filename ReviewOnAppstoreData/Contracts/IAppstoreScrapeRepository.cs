@@ -13,7 +13,7 @@ namespace ReviewOnAppstoreData.Contracts
     public interface IAppstoreScrapeRepository
     {
         public Task<List<AuthenticationModel>> GetKeyToAccessToken();
-        public Task<List<ReviewInfomation>> GetAllReview(string app_id);
+        public Task<List<ReviewInfomation>> GetAllReview(int app_id);
         public Task<bool> InsertReviews(ReviewInfomation input);
         public Task<bool> InsertResponse(ResponseInformation input);
         public string GenerateToken();
@@ -24,11 +24,11 @@ namespace ReviewOnAppstoreData.Contracts
         public Task<ResponseInformation> ReadCustomerReviewResponse(Guid responseID);
         public Task<string> DeleteResponseToCustomerReview(Guid responseID);
         public Task<bool> UpdateStateResponse(UpdateStatusRequest input);
-        public Task<AppInformation> GetApp();
+        //public Task<AppInformation> GetApp();
         public Task<bool> CheckExistReviewID(Guid reviewID);
         public Task<bool> UpdateAppstoreResponse(ResponseInformation input);
         public Task<bool> DeleteAppstoreResponse(Guid responseID);
-        public Task<string> GetAppIDByReviewID(Guid reviewID);
-
+        public Task<int> GetIDAppByReviewID(Guid reviewID);
+        public Task<AppInformation> GetAppByID(int id);
     }
 }

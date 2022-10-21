@@ -12,6 +12,6 @@ namespace ReviewOnAppstoreData.Entity
         public string NameReviewer { get; set; }
         public DateTime CreatedTime { get; set; }
         public string Territory { get; set; }
-        public string App_ID { get; set; }
+        public int App_ID { get; set; }
     }
 }
