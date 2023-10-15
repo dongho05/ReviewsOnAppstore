@@ -315,27 +315,6 @@ namespace ReviewOnAppstoreData.Data
             var token = GenerateToken();
             try
             {
-                //using (var connection = _context.CreateConnection())
-                //{
-                //    var response_infor = await ReadCustomerReviewResponse(responseID);
-                //    var result = await connection.ExecuteAsync(@"insert into Logging 
-                //    values(@Type,
-                //    @ResponseID,
-                //    @ResponseBody,
-                //    @LastModifiedDate,
-                //    @State_response,
-                //    @Process)", new
-                //    {
-                //        Type = response_infor.Type_Response,
-                //        ResponseID = response_infor.ResponseID,
-                //        ResponseBody = response_infor.ResponseBody,
-                //        LastModifiedDate = response_infor.LastModifiedDate,
-                //        State_response = response_infor.State_response,
-                //        Process = "Delete"
-                //    });
-                //    var result_delete = await connection.ExecuteAsync(@"delete from Responses where ResponseID = " + responseID + "");
-                    
-                //}
                 RestClient client = new RestClient(_configuration.GetSection("AppClient").Value);
                 var requesturl = new RestRequest($"v1/customerReviewResponses/{responseID}", RestSharp.Method.Delete);
                 requesturl.RequestFormat = DataFormat.Json;
